@@ -9,10 +9,8 @@ https://docs.djangoproject.com/en/4.2/howto/deployment/wsgi/
 
 import os
 
-# Define the default settings module for the 'bookstore' project.
-# This ensures that the correct settings are used when running the app in production.
+from django.core.wsgi import get_wsgi_application
+
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "bookstore.settings")
 
-# Get the WSGI application for the project.
-# This is the entry point for WSGI servers (like Gunicorn, uWSGI, etc.) to serve the app.
 application = get_wsgi_application()

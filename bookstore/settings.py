@@ -1,18 +1,25 @@
 from pathlib import Path
 import os
+import dj_database_url  # Importando para usar a URL do banco de dados
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+
+# Quick-start development settings - unsuitable for production
+# See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
+
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "default_secret_key")  # Utilize uma variável de ambiente para o SECRET_KEY
+SECRET_KEY = "django-insecure-0n=7y)^@0vec^7m4-=*s&x6qiiu=w)mc=dta-)+^+!@^@xn%nv"
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False  # Certifique-se de que o Debug esteja desativado em produção
+DEBUG = False
 
-ALLOWED_HOSTS = ['0.0.0.0', '127.0.0.1', 'web-production-9b11.up.railway.app']  # Adicione aqui os domínios válidos em produção
+ALLOWED_HOSTS = ['0.0.0.0', 'web-production-9b11.up.railway.app', '127.0.0.1']
+
 
 # Application definition
+
 INSTALLED_APPS = [
     "django.contrib.admin",
     "django.contrib.auth",
@@ -28,14 +35,14 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
-    "django.middleware.security.SecurityMiddleware",
+    'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',  # Adicionando para gerenciar estáticos
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
-    "whitenoise.middleware.WhiteNoiseMiddleware",  # WhiteNoise para servir arquivos estáticos
 ]
 
 ROOT_URLCONF = "bookstore.urls"
@@ -58,19 +65,31 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "bookstore.wsgi.application"
 
-# Database - Use variáveis de ambiente para configurar o banco de dados
+
+# Database
+# Usando a URL do banco de dados do Railway para configurar o PostgreSQL
+
 DATABASES = {
-    "default": {
-        "ENGINE": os.getenv("DB_ENGINE", "django.db.backends.postgresql"),
-        "NAME": os.getenv("DB_NAME", "mydatabase"),
-        "USER": os.getenv("DB_USER", "myuser"),
-        "PASSWORD": os.getenv("DB_PASSWORD", "mypassword"),
-        "HOST": os.getenv("DB_HOST", "localhost"),
-        "PORT": os.getenv("DB_PORT", "5432"),
-    }
+    'default': dj_database_url.config(default=os.getenv('DATABASE_URL'))
+    # Ou se preferir configurar manualmente, utilize as variáveis diretamente:
+    # 'default': {
+    #     'ENGINE': 'django.db.backends.postgresql',
+    #     'NAME': os.getenv('POSTGRES_DB'),
+    #     'USER': os.getenv('POSTGRES_USER'),
+    #     'PASSWORD': os.getenv('POSTGRES_PASSWORD'),
+    #     'HOST': os.getenv('PGHOST'),
+    #     'PORT': os.getenv('PGPORT'),
+    # }
+}
+
+# Se for necessário usar SSL (como recomendado pelo Railway)
+DATABASES['default']['OPTIONS'] = {
+    'sslmode': 'require',
 }
 
 # Password validation
+# https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
+
 AUTH_PASSWORD_VALIDATORS = [
     {
         "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
@@ -86,33 +105,43 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+
 # Internationalization
+# https://docs.djangoproject.com/en/4.2/topics/i18n/
+
 LANGUAGE_CODE = "en-us"
+
 TIME_ZONE = "UTC"
+
 USE_I18N = True
+
 USE_TZ = True
 
+
 # Static files (CSS, JavaScript, Images)
-STATIC_URL = "/static/"
+# https://docs.djangoproject.com/en/4.2/howto/static-files/
+
+STATIC_URL = "static/"
 
 STATICFILES_DIRS = [
-    BASE_DIR / "static",
+    os.path.join(BASE_DIR, "static")
 ]
 
-STATIC_ROOT = BASE_DIR / "staticfiles"
-
-# WhiteNoise for serving compressed static files
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 # Default primary key field type
+# https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
+
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-# REST Framework Configuration
 REST_FRAMEWORK = {
     "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
-    "PAGE_SIZE": 5,  # Quantidade de resultados por página
+    "PAGE_SIZE": 5,  # Quantidade de resultados por pagina
     "DEFAULT_AUTHENTICATION_CLASSES": [
-        "rest_framework.authentication.TokenAuthentication",  # Usando Token Authentication para APIs
+        "rest_framework.authentication.BasicAuthentication",  # Base para outras autenticacoes
+        "rest_framework.authentication.SessionAuthentication",  # Guarda a autenticacao dentro de uma sessao
+        "rest_framework.authentication.TokenAuthentication",  # Guarda a autenticacao dentro de uma sessao
     ],
 }
 
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
